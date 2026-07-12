@@ -11,6 +11,18 @@ $page['title'] = 'Source' . $page['title_separator'] . $page['title'];
 if (array_key_exists("id", $_GET)) {
 	$id = $_GET['id'];
 
+	$valid_ids = array(
+		'fi', 'brute', 'csrf', 'exec', 'sqli', 'sqli_blind', 'upload',
+		'xss_r', 'xss_s', 'weak_id', 'javascript', 'authbypass',
+		'open_redirect', 'bac'
+	);
+
+	if ( !in_array( $id, $valid_ids, true ) ) {
+		$page['body'] = "<p>Not found</p>";
+		dvwaSourceHtmlEcho( $page );
+		exit;
+	}
+
 	$lowsrc = @file_get_contents("./{$id}/source/low.php");
 	$lowsrc = str_replace(array('$html .='), array('echo'), $lowsrc);
 	$lowsrc = highlight_string($lowsrc, true);
