@@ -4,3 +4,5 @@
 **/Dockerfile*
 **/.dockerignore
 **/compose.yml
+database/*.db
+phpinfo.php

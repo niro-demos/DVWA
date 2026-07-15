@@ -61,6 +61,17 @@ switch ($controller) {
 		$controller->processRequest();
 		break;
 	case "user":
+		if ($version === 1) {
+			header("HTTP/1.1 403 Forbidden");
+			echo json_encode(array("status" => "Legacy user API disabled"));
+			break;
+		}
+		$authorization = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+		if (!preg_match('/^Bearer\s+(.+)$/i', $authorization, $token) || !\Src\Login::check_access_token($token[1])) {
+			header("HTTP/1.1 401 Unauthorized");
+			echo json_encode(array("status" => "Invalid or missing token"));
+			break;
+		}
 		// the user id is, of course, optional and must be a number:
 		$userId = null;
 		if (isset($local_uri[2])) {

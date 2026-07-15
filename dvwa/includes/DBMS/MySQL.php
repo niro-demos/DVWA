@@ -10,6 +10,11 @@ if( !defined( 'DVWA_WEB_PAGE_TO_ROOT' ) ) {
 	define( 'DVWA_WEB_PAGE_TO_ROOT', '../../../' );
 }
 
+$admin_password = getenv('DVWA_ADMIN_PASSWORD');
+if ($admin_password === false || strlen($admin_password) < 12) {
+	dvwaMessagePush('Set DVWA_ADMIN_PASSWORD to a unique value of at least 12 characters before provisioning.');
+	dvwaPageReload();
+}
 if( !@($GLOBALS["___mysqli_ston"] = mysqli_connect( $_DVWA[ 'db_server' ],  $_DVWA[ 'db_user' ],  $_DVWA[ 'db_password' ], "", $_DVWA[ 'db_port' ] )) ) {
 	dvwaMessagePush( "Could not connect to the database service.<br />Please check the config file.<br />Database Error #" . mysqli_connect_errno() . ": " . mysqli_connect_error() . "." );
 	if ($_DVWA[ 'db_user' ] == "root") {
@@ -17,6 +22,7 @@ if( !@($GLOBALS["___mysqli_ston"] = mysqli_connect( $_DVWA[ 'db_server' ],  $_DV
 	}
 	dvwaPageReload();
 }
+$admin_password_hash = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], md5($admin_password));
 
 // Create database
 $drop_db = "DROP DATABASE IF EXISTS {$_DVWA[ 'db_database' ]};";
@@ -39,7 +45,7 @@ if( !@((bool)mysqli_query($GLOBALS["___mysqli_ston"], "USE " . $_DVWA[ 'db_datab
 	dvwaPageReload();
 }
 
-$create_tb = "CREATE TABLE users (user_id int(6),first_name varchar(15),last_name varchar(15), user varchar(15), password varchar(32),avatar varchar(70), last_login TIMESTAMP, failed_login INT(3), PRIMARY KEY (user_id));";
+$create_tb = "CREATE TABLE users (user_id int(6),first_name varchar(15),last_name varchar(15), user varchar(15), password varchar(32),avatar varchar(70), last_login TIMESTAMP, failed_login INT(3), session_version INT NOT NULL DEFAULT 0, PRIMARY KEY (user_id));";
 if( !mysqli_query($GLOBALS["___mysqli_ston"],  $create_tb ) ) {
 	dvwaMessagePush( "Table could not be created<br />SQL: " . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) );
 	dvwaPageReload();
@@ -52,11 +58,11 @@ $base_dir= str_replace ("setup.php", "", $_SERVER['SCRIPT_NAME']);
 $avatarUrl  = $base_dir . 'hackable/users/';
 
 $insert = "INSERT INTO users VALUES
-	('1','admin','admin','admin',MD5('password'),'{$avatarUrl}admin.jpg', NOW(), '0'),
-	('2','Gordon','Brown','gordonb',MD5('abc123'),'{$avatarUrl}gordonb.jpg', NOW(), '0'),
-	('3','Hack','Me','1337',MD5('charley'),'{$avatarUrl}1337.jpg', NOW(), '0'),
-	('4','Pablo','Picasso','pablo',MD5('letmein'),'{$avatarUrl}pablo.jpg', NOW(), '0'),
-	('5','Bob','Smith','smithy',MD5('password'),'{$avatarUrl}smithy.jpg', NOW(), '0');";
+	('1','admin','admin','admin','{$admin_password_hash}','{$avatarUrl}admin.jpg', NOW(), '0', '0'),
+	('2','Gordon','Brown','gordonb',MD5('abc123'),'{$avatarUrl}gordonb.jpg', NOW(), '0', '0'),
+	('3','Hack','Me','1337',MD5('charley'),'{$avatarUrl}1337.jpg', NOW(), '0', '0'),
+	('4','Pablo','Picasso','pablo',MD5('letmein'),'{$avatarUrl}pablo.jpg', NOW(), '0', '0'),
+	('5','Bob','Smith','smithy',MD5('password'),'{$avatarUrl}smithy.jpg', NOW(), '0', '0');";
 if( !mysqli_query($GLOBALS["___mysqli_ston"],  $insert ) ) {
 	dvwaMessagePush( "Data could not be inserted into 'users' table<br />SQL: " . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) );
 	dvwaPageReload();
@@ -150,6 +156,9 @@ if( !mysqli_query($GLOBALS["___mysqli_ston"], $alter_users_dept) ) {
 dvwaMessagePush( "Added account_enabled columns to users table." );
 
 // Done
+require_once DVWA_WEB_PAGE_TO_ROOT . 'vulnerabilities/api/bootstrap.php';
+\Src\Login::rotateSecrets();
+dvwaRevokeAllSessions();
 dvwaMessagePush( "<em>Setup successful</em>!" );
 
 if( !dvwaIsLoggedIn())

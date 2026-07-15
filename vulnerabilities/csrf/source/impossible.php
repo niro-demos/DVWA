@@ -34,6 +34,7 @@ if( isset( $_GET[ 'Change' ] ) ) {
 		$current_user = dvwaCurrentUser();
 		$data->bindParam( ':user', $current_user, PDO::PARAM_STR );
 		$data->execute();
+		dvwaSessionVersionRotate();
 
 		// Feedback for the user
 		$html .= "<pre>Password Changed.</pre>";

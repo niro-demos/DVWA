@@ -27,10 +27,8 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
             $html .= "<p>No user found with ID: {$id}</p>";
         } else {
             // "Secure" check that's still vulnerable
-            if (isset($_COOKIE['user_id'])) {
-                $cookie_id = intval($_COOKIE['user_id']);
-                
-                if ($id == $cookie_id) {
+            if ($current_user_id > 0) {
+                if ($id === $current_user_id) {
                     // Access granted
                     $query = "SELECT first_name, last_name, user_id, avatar FROM users WHERE user_id = $id;";
                     $result = mysqli_query($GLOBALS["___mysqli_ston"], $query);
@@ -50,7 +48,7 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
                     $html .= "<p>Access denied. You can only view your own profile.</p>";
                 }
             } else {
-                $html .= "<p>Access denied. No user_id cookie found.</p>";
+                $html .= "<p>Access denied. No authenticated user found.</p>";
             }
         }
         

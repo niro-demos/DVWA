@@ -1,5 +1,10 @@
 <?php
 
+if (getenv('DVWA_ENABLE_SETUP') !== 'true') {
+	http_response_code(404);
+	exit;
+}
+
 define( 'DVWA_WEB_PAGE_TO_ROOT', '' );
 require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/dvwaPage.inc.php';
 
@@ -20,6 +25,7 @@ if( isset( $_POST[ 'create_db' ] ) ) {
 	checkToken( $_REQUEST[ 'user_token' ], $session_token, 'setup.php' );
 
 	if( $DBMS == 'MySQL' ) {
+		// The successful initializer revokes all DVWA sessions before redirecting.
 		include_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/DBMS/MySQL.php';
 	}
 	elseif($DBMS == 'PGSQL') {
@@ -102,7 +108,7 @@ $page[ 'body' ] .= "
 	If you get an error make sure you have the correct user credentials in: <em>" . realpath(  getcwd() . DIRECTORY_SEPARATOR . "config" . DIRECTORY_SEPARATOR . "config.inc.php" ) . "</em></p>
 
 	<p>If the database already exists, <em>it will be cleared and the data will be reset</em>.<br />
-	You can also use this to reset the administrator credentials (\"<em>admin</em> // <em>password</em>\") at any stage.</p>
+	You can also use this to reset the administrator account using the deployment-supplied password.</p>
 	<hr />
 	<br />
 
