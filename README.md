@@ -287,7 +287,7 @@ environment:
 
 ### Database Setup
 
-To set up the database, simply click on the `Setup DVWA` button in the main menu, then click on the `Create / Reset Database` button. This will create / reset the database for you with some data in.
+The setup route is disabled by default in the container image. To provision or reset the database, temporarily set `DVWA_ENABLE_SETUP=true` and set `DVWA_ADMIN_PASSWORD` to a unique value of at least 12 characters, restart the container, and use the `Setup DVWA` page. Remove `DVWA_ENABLE_SETUP` and restart the container as soon as provisioning completes. The configured administrator password is not displayed by the application.
 
 If you receive an error while trying to create your database, make sure your database credentials are correct within `./config/config.inc.php`. _This differs from config.inc.php.dist, which is an example file._
 
@@ -773,4 +773,3 @@ The app has vulnerabilities, it is deliberate. Most are the well documented ones
 Project Home: <https://github.com/digininja/DVWA>
  
 _Created by the DVWA team_
-

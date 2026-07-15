@@ -590,7 +590,7 @@ function dvwaDatabaseConnect() {
 	}
 
 	if ($_DVWA['SQLI_DB'] == SQLITE) {
-		$location = DVWA_WEB_PAGE_TO_ROOT . "database/" . $_DVWA['SQLITE_DB'];
+		$location = $_DVWA['SQLITE_DB_PATH'] ?? (getenv('DVWA_SQLITE_DB_PATH') ?: '/var/lib/dvwa/sqli.db');
 		$sqlite_db_connection = new SQLite3($location);
 		$sqlite_db_connection->enableExceptions(true);
 	#	print "sqlite db setup";

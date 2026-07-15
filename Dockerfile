@@ -6,6 +6,8 @@ LABEL org.opencontainers.image.licenses="gpl-3.0"
 
 WORKDIR /var/www/html
 
+ENV DVWA_SQLITE_DB_PATH=/var/lib/dvwa/sqli.db
+
 # https://www.php.net/manual/en/image.installation.php
 RUN apt-get update \
  && export DEBIAN_FRONTEND=noninteractive \
@@ -13,6 +15,7 @@ RUN apt-get update \
  && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
  && docker-php-ext-configure gd --with-jpeg --with-freetype \
  && a2enmod rewrite \
+ && install -d -o www-data -g www-data /var/lib/dvwa \
  # Use pdo_sqlite instead of pdo_mysql if you want to use sqlite
  && docker-php-ext-install gd mysqli pdo pdo_mysql
 

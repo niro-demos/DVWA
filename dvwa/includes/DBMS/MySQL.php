@@ -10,6 +10,11 @@ if( !defined( 'DVWA_WEB_PAGE_TO_ROOT' ) ) {
 	define( 'DVWA_WEB_PAGE_TO_ROOT', '../../../' );
 }
 
+$admin_password = getenv('DVWA_ADMIN_PASSWORD');
+if ($admin_password === false || strlen($admin_password) < 12) {
+	dvwaMessagePush('Set DVWA_ADMIN_PASSWORD to a unique value of at least 12 characters before provisioning.');
+	dvwaPageReload();
+}
 if( !@($GLOBALS["___mysqli_ston"] = mysqli_connect( $_DVWA[ 'db_server' ],  $_DVWA[ 'db_user' ],  $_DVWA[ 'db_password' ], "", $_DVWA[ 'db_port' ] )) ) {
 	dvwaMessagePush( "Could not connect to the database service.<br />Please check the config file.<br />Database Error #" . mysqli_connect_errno() . ": " . mysqli_connect_error() . "." );
 	if ($_DVWA[ 'db_user' ] == "root") {
@@ -17,6 +22,7 @@ if( !@($GLOBALS["___mysqli_ston"] = mysqli_connect( $_DVWA[ 'db_server' ],  $_DV
 	}
 	dvwaPageReload();
 }
+$admin_password_hash = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], md5($admin_password));
 
 // Create database
 $drop_db = "DROP DATABASE IF EXISTS {$_DVWA[ 'db_database' ]};";
@@ -52,7 +58,7 @@ $base_dir= str_replace ("setup.php", "", $_SERVER['SCRIPT_NAME']);
 $avatarUrl  = $base_dir . 'hackable/users/';
 
 $insert = "INSERT INTO users VALUES
-	('1','admin','admin','admin',MD5('password'),'{$avatarUrl}admin.jpg', NOW(), '0'),
+	('1','admin','admin','admin','{$admin_password_hash}','{$avatarUrl}admin.jpg', NOW(), '0'),
 	('2','Gordon','Brown','gordonb',MD5('abc123'),'{$avatarUrl}gordonb.jpg', NOW(), '0'),
 	('3','Hack','Me','1337',MD5('charley'),'{$avatarUrl}1337.jpg', NOW(), '0'),
 	('4','Pablo','Picasso','pablo',MD5('letmein'),'{$avatarUrl}pablo.jpg', NOW(), '0'),
