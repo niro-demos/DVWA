@@ -156,6 +156,8 @@ if( !mysqli_query($GLOBALS["___mysqli_ston"], $alter_users_dept) ) {
 dvwaMessagePush( "Added account_enabled columns to users table." );
 
 // Done
+require_once DVWA_WEB_PAGE_TO_ROOT . 'vulnerabilities/api/bootstrap.php';
+\Src\Login::rotateSecrets();
 dvwaRevokeAllSessions();
 dvwaMessagePush( "<em>Setup successful</em>!" );
 

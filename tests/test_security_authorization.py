@@ -18,7 +18,7 @@ def test_api_credentials_and_signing_keys_are_deployment_managed():
     assert "becareful" not in controller
     assert "password_verify" in controller
     assert "random_bytes(32)" in login
-    assert "Login::rotateSecrets()" in setup
+    assert "Login::rotateSecrets()" in source("dvwa/includes/DBMS/MySQL.php")
 
 def test_user_api_requires_a_token_and_never_serializes_passwords():
     router = source("vulnerabilities/api/public/index.php")

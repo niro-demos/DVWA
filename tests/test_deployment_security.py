@@ -33,6 +33,16 @@ def test_setup_is_opt_in_and_never_publishes_admin_credentials():
     assert "CREATE TABLE users" in mysql_setup
 
 
+def test_successful_provisioning_revokes_browser_and_api_tokens_before_redirect():
+    setup = (ROOT / "setup.php").read_text()
+    mysql_setup = (ROOT / "dvwa/includes/DBMS/MySQL.php").read_text()
+
+    assert "Login::rotateSecrets()" not in setup
+    assert "Login::rotateSecrets()" in mysql_setup
+    assert mysql_setup.index("Login::rotateSecrets()") < mysql_setup.index("dvwaRevokeAllSessions()")
+    assert mysql_setup.index("dvwaRevokeAllSessions()") < mysql_setup.rindex("dvwaPageReload()")
+
+
 def test_source_viewer_only_resolves_enumerated_sources():
     script = r'''
 require $argv[1];

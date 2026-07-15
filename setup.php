@@ -27,8 +27,6 @@ if( isset( $_POST[ 'create_db' ] ) ) {
 	if( $DBMS == 'MySQL' ) {
 		// The successful initializer revokes all DVWA sessions before redirecting.
 		include_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/DBMS/MySQL.php';
-		require_once DVWA_WEB_PAGE_TO_ROOT . 'vulnerabilities/api/bootstrap.php';
-		\Src\Login::rotateSecrets();
 	}
 	elseif($DBMS == 'PGSQL') {
 		// include_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/DBMS/PGSQL.php';
