@@ -11,6 +11,9 @@ $page[ 'title' ] .= 'Source' . $page[ 'title_separator' ].$page[ 'title' ];
 if (array_key_exists ("id", $_GET) && array_key_exists ("security", $_GET)) {
 	$id       = $_GET[ 'id' ];
 	$security = $_GET[ 'security' ];
+	$id_display = htmlspecialchars( $id, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+	$security_display = htmlspecialchars( $security, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+	$compare_url = htmlspecialchars( 'view_source_all.php?id=' . rawurlencode( $id ), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
 
 
 	switch ($id) {
@@ -67,7 +70,7 @@ if (array_key_exists ("id", $_GET) && array_key_exists ("security", $_GET)) {
 	if (file_exists (DVWA_WEB_PAGE_TO_ROOT . "vulnerabilities/{$id}/source/{$security}.js")) {
 		$js_source = @file_get_contents( DVWA_WEB_PAGE_TO_ROOT . "vulnerabilities/{$id}/source/{$security}.js" );
 		$js_html = "
-		<h2>vulnerabilities/{$id}/source/{$security}.js</h2>
+		<h2>vulnerabilities/{$id_display}/source/{$security_display}.js</h2>
 		<div id=\"code\">
 			<table width='100%' bgcolor='white' style=\"border:2px #C0C0C0 solid\">
 				<tr>
@@ -82,7 +85,7 @@ if (array_key_exists ("id", $_GET) && array_key_exists ("security", $_GET)) {
 	<div class=\"body_padded\">
 		<h1>{$vuln} Source</h1>
 
-		<h2>vulnerabilities/{$id}/source/{$security}.php</h2>
+		<h2>vulnerabilities/{$id_display}/source/{$security_display}.php</h2>
 		<div id=\"code\">
 			<table width='100%' bgcolor='white' style=\"border:2px #C0C0C0 solid\">
 				<tr>
@@ -94,7 +97,7 @@ if (array_key_exists ("id", $_GET) && array_key_exists ("security", $_GET)) {
 		<br /> <br />
 
 		<form>
-			<input type=\"button\" value=\"Compare All Levels\" onclick=\"window.location.href='view_source_all.php?id=$id'\">
+			<a href=\"{$compare_url}\">Compare All Levels</a>
 		</form>
 	</div>\n";
 } else {

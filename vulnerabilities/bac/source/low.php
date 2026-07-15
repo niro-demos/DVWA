@@ -40,9 +40,10 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
                         $html .= "
                             <div class=\"profile-info\">
                                 <h3>User Profile</h3>
-                                <p>User ID: {$row['user_id']}</p>
-                                <p>Name: {$row['first_name']} {$row['last_name']}</p>
-                                <p>Avatar: {$row['avatar']}</p>
+                                <p>User ID: " . htmlspecialchars($row['user_id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "</p>
+                                <p>Name: " . htmlspecialchars($row['first_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . " " .
+                            htmlspecialchars($row['last_name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "</p>
+                                <p>Avatar: " . htmlspecialchars($row['avatar'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "</p>
                                 <!-- Hint: Cookies can be modified by users... -->
                             </div>";
                     }

@@ -32,11 +32,6 @@ switch( dvwaSecurityLevelGet() ) {
 require_once DVWA_WEB_PAGE_TO_ROOT . "vulnerabilities/xss_d/source/{$vulnerabilityFile}";
 
 # For the impossible level, don't decode the querystring
-$decodeURI = "decodeURI";
-if ($vulnerabilityFile == 'impossible.php') {
-	$decodeURI = "";
-}
-
 $page[ 'body' ] = <<<EOF
 <div class="body_padded">
 	<h1>Vulnerability: DOM Based Cross Site Scripting (XSS)</h1>
@@ -47,19 +42,20 @@ $page[ 'body' ] = <<<EOF
 
 		<form name="XSS" method="GET">
 			<select name="default">
-				<script>
-					if (document.location.href.indexOf("default=") >= 0) {
-						var lang = document.location.href.substring(document.location.href.indexOf("default=")+8);
-						document.write("<option value='" + lang + "'>" + $decodeURI(lang) + "</option>");
-						document.write("<option value='' disabled='disabled'>----</option>");
-					}
-					    
-					document.write("<option value='English'>English</option>");
-					document.write("<option value='French'>French</option>");
-					document.write("<option value='Spanish'>Spanish</option>");
-					document.write("<option value='German'>German</option>");
-				</script>
 			</select>
+			<script>
+				const languageSelect = document.querySelector('select[name="default"]');
+				const lang = new URL(window.location.href).searchParams.get('default');
+				const languages = lang ? [lang, '', 'English', 'French', 'Spanish', 'German'] : ['English', 'French', 'Spanish', 'German'];
+
+				languages.forEach((language) => {
+					const option = document.createElement('option');
+					option.value = language;
+					option.textContent = language || '----';
+					option.disabled = language === '';
+					languageSelect.appendChild(option);
+				});
+			</script>
 			<input type="submit" value="Select" />
 		</form>
 	</div>
