@@ -1,32 +1,15 @@
 <?php
 
-if( isset( $_GET[ 'Login' ] ) ) {
-	// Get username
-	$user = $_GET[ 'username' ];
-
-	// Get password
-	$pass = $_GET[ 'password' ];
-	$pass = md5( $pass );
-
-	// Check the database
-	$query  = "SELECT * FROM `users` WHERE user = '$user' AND password = '$pass';";
-	$result = mysqli_query($GLOBALS["___mysqli_ston"],  $query ) or die( '<pre>' . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . '</pre>' );
-
-	if( $result && mysqli_num_rows( $result ) == 1 ) {
-		// Get users details
-		$row    = mysqli_fetch_assoc( $result );
-		$avatar = $row["avatar"];
-
-		// Login successful
+if( isset( $_POST[ 'Login' ] ) && isset( $_POST[ 'password' ] ) ) {
+	$row = dvwaPasswordChallenge( $_POST[ 'password' ] );
+	if( $row ) {
+		$user = htmlspecialchars( dvwaCurrentUser(), ENT_QUOTES, 'UTF-8' );
+		$avatar = htmlspecialchars( $row[ 'avatar' ], ENT_QUOTES, 'UTF-8' );
 		$html .= "<p>Welcome to the password protected area {$user}</p>";
 		$html .= "<img src=\"{$avatar}\" />";
-	}
-	else {
-		// Login failed
+	} else {
 		$html .= "<pre><br />Username and/or password incorrect.</pre>";
 	}
-
-	((is_null($___mysqli_res = mysqli_close($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
 }
 
 ?>

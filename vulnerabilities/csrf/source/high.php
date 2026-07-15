@@ -36,7 +36,7 @@ if ($change) {
 	if( $pass_new == $pass_conf ) {
 		// They do!
 		$pass_new = mysqli_real_escape_string ($GLOBALS["___mysqli_ston"], $pass_new);
-		$pass_new = md5( $pass_new );
+		$pass_new = password_hash( $pass_new, PASSWORD_ARGON2ID );
 
 		// Update the database
 		$current_user = dvwaCurrentUser();
