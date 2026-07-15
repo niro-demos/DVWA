@@ -9,22 +9,34 @@ $login_state = "";
 
 if( isset( $_POST[ 'Login' ] ) ) {
 
-	$user = $_POST[ 'username' ];
-	$user = stripslashes( $user );
-	$user = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $user);
+	$user = stripslashes( $_POST[ 'username' ] );
+	$user_html = htmlspecialchars( $user, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+	$user_sql = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $user);
+	$attempt_key = hash( 'sha256', dvwaCurrentUser() . "\0" . $user . "\0" . ($_SERVER['REMOTE_ADDR'] ?? '') );
+	$now = time();
+	if( !isset( $_SESSION['credential_attempts'] ) ) $_SESSION['credential_attempts'] = array();
+	$credential_attempts = $_SESSION['credential_attempts'][$attempt_key] ?? array();
+	$credential_attempts = array_values( array_filter( $credential_attempts, function( $attempt ) use ( $now ) { return $attempt > $now - 300; } ) );
+	if( count( $credential_attempts ) >= 5 ) {
+		http_response_code( 429 );
+		$login_state = '<h3 class="loginFail">Too many attempts. Please try again later.</h3>';
+	} else {
 
 	$pass = $_POST[ 'password' ];
 	$pass = stripslashes( $pass );
 	$pass = mysqli_real_escape_string($GLOBALS["___mysqli_ston"], $pass);
 	$pass = md5( $pass );
 
-	$query  = "SELECT * FROM `users` WHERE user='$user' AND password='$pass';";
+	$query  = "SELECT * FROM `users` WHERE user='$user_sql' AND password='$pass';";
 	$result = @mysqli_query($GLOBALS["___mysqli_ston"], $query) or die( '<pre>'.  mysqli_connect_error() . '.<br />Try <a href="setup.php">installing again</a>.</pre>' );
 	if( $result && mysqli_num_rows( $result ) == 1 ) {    // Login Successful...
-		$login_state = "<h3 class=\"loginSuccess\">Valid password for '{$user}'</h3>";
+		$login_state = "<h3 class=\"loginSuccess\">Valid password for '{$user_html}'</h3>";
 	}else{
 		// Login failed
-		$login_state = "<h3 class=\"loginFail\">Wrong password for '{$user}'</h3>";
+		$credential_attempts[] = $now;
+		$_SESSION['credential_attempts'][$attempt_key] = $credential_attempts;
+		$login_state = "<h3 class=\"loginFail\">Wrong password for '{$user_html}'</h3>";
+	}
 	}
 
 }

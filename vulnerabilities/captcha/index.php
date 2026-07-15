@@ -59,7 +59,7 @@ $page[ 'body' ] .= ">
 
 			<input type=\"hidden\" name=\"step\" value=\"1\" />\n";
 
-if( $vulnerabilityFile == 'impossible.php' ) {
+if( $vulnerabilityFile == 'high.php' || $vulnerabilityFile == 'impossible.php' ) {
 	$page[ 'body' ] .= "
 			Current password:<br />
 			<input type=\"password\" AUTOCOMPLETE=\"off\" name=\"password_current\"><br />";
