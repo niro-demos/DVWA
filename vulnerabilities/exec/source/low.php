@@ -1,17 +1,15 @@
 <?php
 
+require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/command.php';
+
 if( isset( $_POST[ 'Submit' ]  ) ) {
 	// Get input
 	$target = $_REQUEST[ 'ip' ];
 
-	// Determine OS and execute the ping command.
-	if( stristr( php_uname( 's' ), 'Windows NT' ) ) {
-		// Windows
-		$cmd = shell_exec( 'ping  ' . $target );
-	}
-	else {
-		// *nix
-		$cmd = shell_exec( 'ping  -c 4 ' . $target );
+	list( $valid, $cmd ) = dvwaPingIp( $target );
+	if( !$valid ) {
+		$html .= '<pre>Invalid IP address</pre>';
+		return;
 	}
 
 	// Feedback for the end user
