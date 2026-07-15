@@ -1,21 +1,16 @@
 <?php
 
-if (array_key_exists ("redirect", $_GET) && $_GET['redirect'] != "") {
-	if (strpos($_GET['redirect'], "info.php") !== false) {
-		header ("location: " . $_GET['redirect']);
-		exit;
-	} else {
-		http_response_code (500);
-		?>
-		<p>You can only redirect to the info page.</p>
-		<?php
-		exit;
-	}
+require_once __DIR__ . "/redirect_targets.php";
+
+$target = approved_redirect_target($_GET['redirect'] ?? null);
+if ($target !== null) {
+	header ("location: " . $target);
+	exit;
 }
 
-http_response_code (500);
+http_response_code (400);
 ?>
-<p>Missing redirect target.</p>
+<p>Unknown or missing redirect target.</p>
 <?php
 exit;
 ?>
