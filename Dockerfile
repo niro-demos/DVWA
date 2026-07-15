@@ -19,6 +19,11 @@ RUN apt-get update \
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 COPY --chown=www-data:www-data . .
 COPY --chown=www-data:www-data config/config.inc.php.dist config/config.inc.php
+COPY docker/apache-dvwa-security.conf /etc/apache2/conf-available/dvwa-security.conf
+
+RUN cp /var/www/html/php.ini /usr/local/etc/php/conf.d/dvwa.ini \
+ && rm /var/www/html/php.ini /var/www/html/config/config.inc.php.dist \
+ && a2enconf dvwa-security
 
 # This is configuring the stuff for the API
 RUN cd /var/www/html/vulnerabilities/api \

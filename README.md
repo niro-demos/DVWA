@@ -364,9 +364,8 @@ These then go in the following sections of `./config/config.inc.php`:
 
 ### Default Credentials
 
-**Default username = `admin`**
-
-**Default password = `password`**
+DVWA does not publish deployment credentials. Use the administrator account
+configured for your environment.
 
 _...can easily be brute forced ;)_
 
@@ -773,4 +772,3 @@ The app has vulnerabilities, it is deliberate. Most are the well documented ones
 Project Home: <https://github.com/digininja/DVWA>
  
 _Created by the DVWA team_
-
