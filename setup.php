@@ -20,6 +20,7 @@ if( isset( $_POST[ 'create_db' ] ) ) {
 	checkToken( $_REQUEST[ 'user_token' ], $session_token, 'setup.php' );
 
 	if( $DBMS == 'MySQL' ) {
+		// The successful initializer revokes all DVWA sessions before redirecting.
 		include_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/DBMS/MySQL.php';
 	}
 	elseif($DBMS == 'PGSQL') {

@@ -42,6 +42,7 @@ if ($change) {
 		$current_user = dvwaCurrentUser();
 		$insert = "UPDATE `users` SET password = '" . $pass_new . "' WHERE user = '" . $current_user . "';";
 		$result = mysqli_query($GLOBALS["___mysqli_ston"],  $insert );
+		if( $result ) dvwaSessionVersionRotate();
 
 		// Feedback for the user
 		$return_message = "Password Changed.";
