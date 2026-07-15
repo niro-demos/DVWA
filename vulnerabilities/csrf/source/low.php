@@ -15,6 +15,7 @@ if( isset( $_GET[ 'Change' ] ) ) {
 		$current_user = dvwaCurrentUser();
 		$insert = "UPDATE `users` SET password = '$pass_new' WHERE user = '" . $current_user . "';";
 		$result = mysqli_query($GLOBALS["___mysqli_ston"],  $insert ) or die( '<pre>' . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . '</pre>' );
+		dvwaSessionVersionRotate();
 
 		// Feedback for the user
 		$html .= "<pre>Password Changed.</pre>";

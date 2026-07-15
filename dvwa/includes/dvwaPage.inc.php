@@ -52,7 +52,7 @@ function dvwa_start_session() {
 		$samesite = "Strict";
 	}
 	else {
-		$httponly = false;
+		$httponly = true;
 		$samesite = "";
 	}
 
@@ -96,7 +96,7 @@ function dvwa_start_session() {
 	*/
 	if ($security_level == 'impossible') {
 		session_start();
-		session_regenerate_id(); // force a new id to be generated
+		session_regenerate_id(true); // replace the id and delete its predecessor
 	}
 	else {
 		if (isset($_COOKIE[session_name()])) // if a session id already exists
@@ -138,8 +138,57 @@ function dvwaPageStartup( $pActions ) {
 }
 
 function dvwaLogin( $pUsername ) {
+	// Discard the pre-authentication session cookie queued by dvwa_start_session;
+	// the only PHPSESSID emitted by a successful login must be the replacement.
+	header_remove( 'Set-Cookie' );
+	session_regenerate_id( true );
 	$dvwaSession =& dvwaSessionGrab();
 	$dvwaSession[ 'username' ] = $pUsername;
+	$dvwaSession[ 'session_generation' ] = dvwaSessionGeneration();
+	dvwaSessionVersionRefresh();
+}
+
+function dvwaSessionGeneration() {
+	$path = sys_get_temp_dir() . '/dvwa-session-generation-' . sha1(__DIR__);
+	if( !file_exists( $path ) ) {
+		@file_put_contents( $path, "1\n", LOCK_EX );
+	}
+	return (int) @file_get_contents( $path );
+}
+
+function dvwaSessionVersionRefresh() {
+	$dvwaSession =& dvwaSessionGrab();
+	if( !isset( $dvwaSession[ 'username' ] ) || !isset( $GLOBALS[ "___mysqli_ston" ] ) ) return;
+	$user = mysqli_real_escape_string( $GLOBALS[ "___mysqli_ston" ], $dvwaSession[ 'username' ] );
+	$result = mysqli_query( $GLOBALS[ "___mysqli_ston" ], "SELECT session_version FROM users WHERE user = '{$user}' LIMIT 1" );
+	if( $result && ( $row = mysqli_fetch_assoc( $result ) ) ) $dvwaSession[ 'session_version' ] = (int) $row[ 'session_version' ];
+}
+
+function dvwaSessionVersionIsCurrent() {
+	$dvwaSession =& dvwaSessionGrab();
+	$stored = $dvwaSession[ 'session_version' ] ?? null;
+	dvwaSessionVersionRefresh();
+	return $stored !== null && $stored === ( $dvwaSession[ 'session_version' ] ?? null );
+}
+
+function dvwaSessionVersionRotate() {
+	$dvwaSession =& dvwaSessionGrab();
+	$user = mysqli_real_escape_string( $GLOBALS[ "___mysqli_ston" ], $dvwaSession[ 'username' ] );
+	mysqli_query( $GLOBALS[ "___mysqli_ston" ], "UPDATE users SET session_version = session_version + 1 WHERE user = '{$user}'" );
+	dvwaSessionVersionRefresh();
+}
+
+function dvwaRevokeAllSessions() {
+	$path = sys_get_temp_dir() . '/dvwa-session-generation-' . sha1(__DIR__);
+	$handle = fopen( $path, 'c+' );
+	if( $handle ) {
+		flock( $handle, LOCK_EX );
+		$current = (int) stream_get_contents( $handle );
+		ftruncate( $handle, 0 ); rewind( $handle ); fwrite( $handle, ( $current + 1 ) . "\n" ); fflush( $handle );
+		flock( $handle, LOCK_UN ); fclose( $handle );
+	}
+	session_unset();
+	session_destroy();
 }
 
 
@@ -150,7 +199,9 @@ function dvwaIsLoggedIn() {
 		return true;
 	}
 	$dvwaSession =& dvwaSessionGrab();
-	return isset( $dvwaSession[ 'username' ] );
+	return isset( $dvwaSession[ 'username' ] )
+		&& ( $dvwaSession[ 'session_generation' ] ?? null ) === dvwaSessionGeneration()
+		&& dvwaSessionVersionIsCurrent();
 }
 
 
