@@ -8,6 +8,8 @@ namespace Src;
 
 use OpenApi\Attributes as OAT;
 
+require_once dirname(__DIR__, 3) . '/dvwa/includes/command.php';
+
 class HealthController
 {
 	private $command = null;
@@ -85,7 +87,17 @@ class HealthController
 		if (array_key_exists ("target", $input)) {
 			$target = $input['target'];
 
-			exec ("ping -c 4 " . $target, $output, $ret_var);
+			if (!is_string($target)) {
+				$valid = false;
+			} else {
+				list($valid, $output, $ret_var) = \dvwaPingIp($target);
+			}
+
+			if (!$valid) {
+				$response['status_code_header'] = 'HTTP/1.1 400 Bad Request';
+				$response['body'] = json_encode (array ("status" => "Invalid target"));
+				return $response;
+			}
 
 			if ($ret_var == 0) {
 				$response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -197,4 +209,3 @@ final class Words {
     #[OAT\Property(example: "Hello World")]
     public string $words;
 }
-
