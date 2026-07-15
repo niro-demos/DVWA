@@ -8,13 +8,20 @@ if( isset( $_GET[ 'Login' ] ) ) {
 	$pass = $_GET[ 'password' ];
 	$pass = md5( $pass );
 
-	// Check the database
-	$query  = "SELECT * FROM `users` WHERE user = '$user' AND password = '$pass';";
-	$result = mysqli_query($GLOBALS["___mysqli_ston"],  $query ) or die( '<pre>' . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . '</pre>' );
+	// Bind credentials so quotes and SQL syntax remain data.
+	try {
+		$data = $db->prepare('SELECT * FROM users WHERE user = (:user) AND password = (:password) LIMIT 1;');
+		$data->bindValue(':user', $user, PDO::PARAM_STR);
+		$data->bindValue(':password', $pass, PDO::PARAM_STR);
+		$data->execute();
+		$row = $data->fetch(PDO::FETCH_ASSOC);
+	} catch (Throwable $error) {
+		error_log($error->getMessage());
+		$row = false;
+	}
 
-	if( $result && mysqli_num_rows( $result ) == 1 ) {
+	if ($row !== false) {
 		// Get users details
-		$row    = mysqli_fetch_assoc( $result );
 		$avatar = $row["avatar"];
 
 		// Login successful
