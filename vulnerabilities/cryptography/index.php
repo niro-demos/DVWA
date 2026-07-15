@@ -16,10 +16,10 @@ dvwaDatabaseConnect();
 $vulnerabilityFile = '';
 switch( dvwaSecurityLevelGet() ) {
 	case 'low':
-		$vulnerabilityFile = 'low.php';
+		$vulnerabilityFile = 'impossible.php';
 		break;
 	case 'medium':
-		$vulnerabilityFile = 'medium.php';
+		$vulnerabilityFile = 'impossible.php';
 		break;
 	case 'high':
 		$vulnerabilityFile = 'high.php';
@@ -62,4 +62,3 @@ $page[ 'body' ] .= "
 dvwaHtmlEcho( $page );
 
 ?>
-
