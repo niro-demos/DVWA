@@ -17,23 +17,9 @@ if( !isset( $html ) ) {
 	$html = "";
 }
 
-// Valid security levels
-$security_levels = array('low', 'medium', 'high', 'impossible');
-if( !isset( $_COOKIE[ 'security' ] ) || !in_array( $_COOKIE[ 'security' ], $security_levels ) ) {
-	// Set security cookie to impossible if no cookie exists
-	if( in_array( $_DVWA[ 'default_security_level' ], $security_levels) ) {
-		dvwaSecurityLevelSet( $_DVWA[ 'default_security_level' ] );
-	} else {
-		dvwaSecurityLevelSet( 'impossible' );
-	}
-	// If the cookie wasn't set then the session flags need updating.
-	dvwa_start_session();
-}
-
 /*
- * This function is called after login and when you change the security level.
- * It gets the security level and sets the httponly and samesite cookie flags
- * appropriately.
+ * This function is called after login. It gets the deployment-controlled
+ * security level and sets the httponly and samesite cookie flags appropriately.
  *
  * To force an update of the cookie flags we need to update the session id,
  * just setting the flags and doing a session_start() does not change anything.
@@ -139,6 +125,8 @@ function dvwaPageStartup( $pActions ) {
 
 function dvwaLogin( $pUsername ) {
 	$dvwaSession =& dvwaSessionGrab();
+	session_regenerate_id( true );
+	unset( $dvwaSession[ 'user_id' ] );
 	$dvwaSession[ 'username' ] = $pUsername;
 }
 
@@ -156,7 +144,7 @@ function dvwaIsLoggedIn() {
 
 function dvwaLogout() {
 	$dvwaSession =& dvwaSessionGrab();
-	unset( $dvwaSession[ 'username' ] );
+	unset( $dvwaSession[ 'username' ], $dvwaSession[ 'user_id' ] );
 }
 
 
@@ -200,31 +188,16 @@ function dvwaThemeGet() {
 function dvwaSecurityLevelGet() {
 	global $_DVWA;
 
-	// If there is a security cookie, that takes priority.
-	if (isset($_COOKIE['security'])) {
-		return $_COOKIE[ 'security' ];
-	}
-
-	// If not, check to see if authentication is disabled, if it is, use
-	// the default security level.
-	if (array_key_exists("disable_authentication", $_DVWA) && $_DVWA['disable_authentication']) {
+	$security_levels = array('low', 'medium', 'high', 'impossible');
+	if (isset($_DVWA[ 'default_security_level' ]) && in_array($_DVWA[ 'default_security_level' ], $security_levels, true)) {
 		return $_DVWA[ 'default_security_level' ];
 	}
 
-	// Worse case, set the level to impossible.
 	return 'impossible';
 }
 
 function dvwaSecurityLevelSet( $pSecurityLevel ) {
-	if( $pSecurityLevel == 'impossible' ) {
-		$httponly = true;
-	}
-	else {
-		$httponly = false;
-	}
-
-	setcookie( 'security', $pSecurityLevel, 0, "/", "", false, $httponly );
-	$_COOKIE['security'] = $pSecurityLevel;
+	// Security level selection is deployment-controlled through config.inc.php.
 }
 
 function dvwaLocaleGet() {
