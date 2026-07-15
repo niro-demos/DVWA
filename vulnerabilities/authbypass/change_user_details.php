@@ -2,16 +2,15 @@
 define( 'DVWA_WEB_PAGE_TO_ROOT', '../../' );
 require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/dvwaPage.inc.php';
 
-dvwaDatabaseConnect();
+dvwaPageStartup( array( 'authenticated' ) );
 
-/*
-On impossible only the admin is allowed to retrieve the data.
-*/
-
-if (dvwaSecurityLevelGet() == "impossible" && dvwaCurrentUser() != "admin") {
-	print json_encode (array ("result" => "fail", "error" => "Access denied"));
+if ( dvwaCurrentUser() !== 'admin' ) {
+	http_response_code( 403 );
+	print json_encode( array( 'result' => 'fail', 'error' => 'Access denied' ) );
 	exit;
 }
+
+dvwaDatabaseConnect();
 
 if ($_SERVER['REQUEST_METHOD'] != "POST") {
 	$result = array (
@@ -44,8 +43,31 @@ try {
 	exit;
 }
 
-$query = "UPDATE users SET first_name = '" . $data->first_name . "', last_name = '" .  $data->surname . "' where user_id = " . $data->id . "";
-$result = mysqli_query($GLOBALS["___mysqli_ston"],  $query ) or die( '<pre>' . ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . '</pre>' );
+$id = filter_var( $data->id ?? null, FILTER_VALIDATE_INT );
+if ( $id === false || !isset( $data->first_name, $data->surname ) || !is_string( $data->first_name ) || !is_string( $data->surname ) ) {
+	http_response_code( 400 );
+	print json_encode( array( 'result' => 'fail', 'error' => 'Invalid user details' ) );
+	exit;
+}
+
+$stmt = mysqli_prepare(
+	$GLOBALS['___mysqli_ston'],
+	'UPDATE users SET first_name = ?, last_name = ? WHERE user_id = ?'
+);
+if ( !$stmt ) {
+	http_response_code( 500 );
+	print json_encode( array( 'result' => 'fail', 'error' => 'Database error' ) );
+	exit;
+}
+
+mysqli_stmt_bind_param( $stmt, 'ssi', $data->first_name, $data->surname, $id );
+if ( !mysqli_stmt_execute( $stmt ) ) {
+	mysqli_stmt_close( $stmt );
+	http_response_code( 500 );
+	print json_encode( array( 'result' => 'fail', 'error' => 'Database error' ) );
+	exit;
+}
+mysqli_stmt_close( $stmt );
 
 print json_encode (array ("result" => "ok"));
 exit;

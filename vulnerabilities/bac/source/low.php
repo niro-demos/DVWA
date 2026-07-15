@@ -26,11 +26,7 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
         if (!$user_exists) {
             $html .= "<p>No user found with ID: {$id}</p>";
         } else {
-            // "Secure" check that's still vulnerable
-            if (isset($_COOKIE['user_id'])) {
-                $cookie_id = intval($_COOKIE['user_id']);
-                
-                if ($id == $cookie_id) {
+            if ($id === $current_user_id) {
                     // Access granted
                     $query = "SELECT first_name, last_name, user_id, avatar FROM users WHERE user_id = $id;";
                     $result = mysqli_query($GLOBALS["___mysqli_ston"], $query);
@@ -40,17 +36,13 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
                         $html .= "
                             <div class=\"profile-info\">
                                 <h3>User Profile</h3>
-                                <p>User ID: {$row['user_id']}</p>
-                                <p>Name: {$row['first_name']} {$row['last_name']}</p>
-                                <p>Avatar: {$row['avatar']}</p>
-                                <!-- Hint: Cookies can be modified by users... -->
+                                <p>User ID: " . htmlspecialchars($row['user_id'], ENT_QUOTES, 'UTF-8') . "</p>
+                                <p>Name: " . htmlspecialchars($row['first_name'], ENT_QUOTES, 'UTF-8') . " " . htmlspecialchars($row['last_name'], ENT_QUOTES, 'UTF-8') . "</p>
+                                <p>Avatar: " . htmlspecialchars($row['avatar'], ENT_QUOTES, 'UTF-8') . "</p>
                             </div>";
                     }
-                } else {
-                    $html .= "<p>Access denied. You can only view your own profile.</p>";
-                }
             } else {
-                $html .= "<p>Access denied. No user_id cookie found.</p>";
+                $html .= "<p>Access denied. You can only view your own profile.</p>";
             }
         }
         
@@ -86,11 +78,5 @@ if (isset($_GET['action']) && isset($_GET['user_id'])) {
 }
 
 // Show current user's role for context
-$role = isset($_COOKIE['user_role']) ? $_COOKIE['user_role'] : 'regular_user';
-$html .= "<div class='info-banner'>Current Role: {$role}</div>";
-
-// Set initial role cookie if not exists
-if (!isset($_COOKIE['user_role'])) {
-    setcookie('user_role', 'regular_user', time() + 3600, '/');
-}
+$html .= "<div class='info-banner'>Current Role: " . htmlspecialchars($role, ENT_QUOTES, 'UTF-8') . "</div>";
 ?>
