@@ -8,6 +8,7 @@ class OrderController
 {
 	private $data = array ();
 	private $orderId = null;
+	private $version = null;
 	private $requestMethod = "GET";
 
 	public function __construct($requestMethod, $version, $orderId) {

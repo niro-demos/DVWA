@@ -2,16 +2,17 @@
 define( 'DVWA_WEB_PAGE_TO_ROOT', '../../' );
 require_once DVWA_WEB_PAGE_TO_ROOT . 'dvwa/includes/dvwaPage.inc.php';
 
+if (!isset($_SESSION['dvwa']['username']) || dvwaCurrentUser() !== 'admin') {
+	http_response_code(403);
+	print json_encode(array('result' => 'fail', 'error' => 'Access denied'));
+	exit;
+}
+
 dvwaDatabaseConnect();
 
 /*
 On high and impossible, only the admin is allowed to retrieve the data.
 */
-if ((dvwaSecurityLevelGet() == "high" || dvwaSecurityLevelGet() == "impossible") && dvwaCurrentUser() != "admin") {
-	print json_encode (array ("result" => "fail", "error" => "Access denied"));
-	exit;
-}
-
 $query  = "SELECT user_id, first_name, last_name FROM users";
 $result = mysqli_query($GLOBALS["___mysqli_ston"],  $query );
 
