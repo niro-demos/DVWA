@@ -1,6 +1,1 @@
-<?php
-
-// The page we wish to display
-$file = $_GET[ 'page' ];
-
-?>
+<?php require __DIR__ . '/secure.php'; ?>
