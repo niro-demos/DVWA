@@ -1,11 +1,11 @@
 <?php
 
-if( isset( $_GET[ 'Change' ] ) ) {
-	// Checks to see where the request came from
-	if( stripos( $_SERVER[ 'HTTP_REFERER' ] ,$_SERVER[ 'SERVER_NAME' ]) !== false ) {
+if( isset( $_POST[ 'Change' ] ) ) {
+	checkToken( $_POST[ 'user_token' ], $_SESSION[ 'session_token' ], 'index.php' );
+
 		// Get input
-		$pass_new  = $_GET[ 'password_new' ];
-		$pass_conf = $_GET[ 'password_conf' ];
+		$pass_new  = $_POST[ 'password_new' ];
+		$pass_conf = $_POST[ 'password_conf' ];
 
 		// Do the passwords match?
 		if( $pass_new == $pass_conf ) {
@@ -25,13 +25,9 @@ if( isset( $_GET[ 'Change' ] ) ) {
 			// Issue with passwords matching
 			$html .= "<pre>Passwords did not match.</pre>";
 		}
-	}
-	else {
-		// Didn't come from a trusted source
-		$html .= "<pre>That request didn't look correct.</pre>";
-	}
-
 	((is_null($___mysqli_res = mysqli_close($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
 }
+
+generateSessionToken();
 
 ?>

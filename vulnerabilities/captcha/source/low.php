@@ -24,13 +24,15 @@ if( isset( $_POST[ 'Change' ] ) && ( $_POST[ 'step' ] == '1' ) ) {
 	else {
 		// CAPTCHA was correct. Do both new passwords match?
 		if( $pass_new == $pass_conf ) {
+			$_SESSION[ 'captcha_passed' ] = array(
+				'user' => dvwaCurrentUser(),
+				'password' => $pass_new,
+			);
 			// Show next stage for the user
 			$html .= "
 				<pre><br />You passed the CAPTCHA! Click the button to confirm your changes.<br /></pre>
 				<form action=\"#\" method=\"POST\">
 					<input type=\"hidden\" name=\"step\" value=\"2\" />
-					<input type=\"hidden\" name=\"password_new\" value=\"{$pass_new}\" />
-					<input type=\"hidden\" name=\"password_conf\" value=\"{$pass_conf}\" />
 					<input type=\"submit\" name=\"Change\" value=\"Change\" />
 				</form>";
 		}
@@ -46,13 +48,12 @@ if( isset( $_POST[ 'Change' ] ) && ( $_POST[ 'step' ] == '2' ) ) {
 	// Hide the CAPTCHA form
 	$hide_form = true;
 
-	// Get input
-	$pass_new  = $_POST[ 'password_new' ];
-	$pass_conf = $_POST[ 'password_conf' ];
+	$authorization = $_SESSION[ 'captcha_passed' ] ?? null;
+	unset( $_SESSION[ 'captcha_passed' ] );
 
-	// Check to see if both password match
-	if( $pass_new == $pass_conf ) {
+	if( is_array( $authorization ) && $authorization[ 'user' ] === dvwaCurrentUser() ) {
 		// They do!
+		$pass_new = $authorization[ 'password' ];
 		$pass_new = ((isset($GLOBALS["___mysqli_ston"]) && is_object($GLOBALS["___mysqli_ston"])) ? mysqli_real_escape_string($GLOBALS["___mysqli_ston"],  $pass_new ) : ((trigger_error("[MySQLConverterToo] Fix the mysql_escape_string() call! This code does not work.", E_USER_ERROR)) ? "" : ""));
 		$pass_new = md5( $pass_new );
 
@@ -65,7 +66,7 @@ if( isset( $_POST[ 'Change' ] ) && ( $_POST[ 'step' ] == '2' ) ) {
 	}
 	else {
 		// Issue with the passwords matching
-		$html .= "<pre>Passwords did not match.</pre>";
+		$html .= "<pre>CAPTCHA verification is required.</pre>";
 		$hide_form = false;
 	}
 
