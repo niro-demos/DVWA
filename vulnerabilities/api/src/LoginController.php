@@ -9,6 +9,15 @@ class LoginController
 	private $command = null;
 	private $requestMethod = "GET";
 
+	private function configuredCredentials() {
+		return array(
+			'client_id' => getenv('DVWA_API_CLIENT_ID') ?: null,
+			'client_secret' => getenv('DVWA_API_CLIENT_SECRET') ?: null,
+			'username' => getenv('DVWA_API_USERNAME') ?: null,
+			'password_hash' => getenv('DVWA_API_PASSWORD_HASH') ?: null,
+		);
+	}
+
 	public function __construct($requestMethod, $version, $command) {
 		$this->requestMethod = $requestMethod;
 		$this->command = $command;
@@ -57,7 +66,9 @@ class LoginController
 			$username = $input['username'];
 			$password = $input['password'];
 
-			if ($username == "mrbennett" && $password == "becareful") {
+			$credentials = $this->configuredCredentials();
+			if ($credentials['username'] !== null && hash_equals($credentials['username'], (string) $username)
+				&& $credentials['password_hash'] !== null && password_verify((string) $password, $credentials['password_hash'])) {
 				$response['status_code_header'] = 'HTTP/1.1 200 OK';
 				$response['body'] = json_encode (array ("token" => Login::create_token()));
 			} else {
@@ -83,7 +94,10 @@ class LoginController
 			$client_secret = $_SERVER['PHP_AUTH_PW'];
 
 			# App auth check
-			if ($client_id == "1471.dvwa.digi.ninja" && $client_secret == "ABigLongSecret") {
+			$credentials = $this->configuredCredentials();
+			if ($credentials['client_id'] !== null && $credentials['client_secret'] !== null
+				&& hash_equals($credentials['client_id'], (string) $client_id)
+				&& hash_equals($credentials['client_secret'], (string) $client_secret)) {
 
 				if (array_key_exists ("grant_type", $_POST)) {
 					switch ($_POST['grant_type']) {
@@ -93,7 +107,9 @@ class LoginController
 								$username = $_POST['username'];
 								$password = $_POST['password'];
 
-								if ($username == "mrbennett" && $password == "becareful") {
+								if ($credentials['username'] !== null && $credentials['password_hash'] !== null
+									&& hash_equals($credentials['username'], (string) $username)
+									&& password_verify((string) $password, $credentials['password_hash'])) {
 									$response['status_code_header'] = 'HTTP/1.1 200 OK';
 									$response['body'] = Login::create_token();
 								} else {

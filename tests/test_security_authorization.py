@@ -3,8 +3,10 @@ from pathlib import Path
 
 ROOT = Path(os.environ.get("DVWA_SOURCE_ROOT", Path(__file__).resolve().parents[1]))
 
+
 def source(path):
     return (ROOT / path).read_text()
+
 
 def test_api_credentials_and_signing_keys_are_deployment_managed():
     controller = source("vulnerabilities/api/src/LoginController.php")
@@ -21,10 +23,11 @@ def test_api_credentials_and_signing_keys_are_deployment_managed():
 def test_user_api_requires_a_token_and_never_serializes_passwords():
     router = source("vulnerabilities/api/public/index.php")
     user = source("vulnerabilities/api/src/User.php")
+
     assert 'HTTP/1.1 403 Forbidden' in router
     assert "Login::check_access_token" in router
     assert '"password" => $this->password' not in user
-    assert '"name" => $this->name' in user
+    assert '"name" => $this->name' in user  # legitimate records remain available
 
 def test_user_administration_is_admin_only_and_parameterized():
     read = source("vulnerabilities/authbypass/get_user_data.php")
