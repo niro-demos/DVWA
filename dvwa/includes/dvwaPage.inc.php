@@ -174,6 +174,44 @@ function dvwaCurrentUser() {
 	return ( isset( $dvwaSession[ 'username' ]) ? $dvwaSession[ 'username' ] : 'Unknown') ;
 }
 
+// Verify the authenticated user's password challenge with a bounded lockout.
+// The submitted username is deliberately ignored: one signed-in user must not
+// be able to mutate another account's authentication state.
+function dvwaPasswordChallenge( $password ) {
+	global $db;
+
+	$user = dvwaCurrentUser();
+	$total_failed_login = 3;
+	$lockout_time = 15 * 60;
+
+	$data = $db->prepare( 'SELECT password, avatar, failed_login, last_login FROM users WHERE user = (:user) LIMIT 1;' );
+	$data->bindParam( ':user', $user, PDO::PARAM_STR );
+	$data->execute();
+	$row = $data->fetch( PDO::FETCH_ASSOC );
+
+	if( !$row ) {
+		return false;
+	}
+
+	$failed_login = (int) $row[ 'failed_login' ];
+	if( $failed_login >= $total_failed_login && time() < strtotime( $row[ 'last_login' ] ) + $lockout_time ) {
+		// Do not update last_login here: repeated requests must not extend a lock.
+		return false;
+	}
+
+	if( password_verify( $password, $row[ 'password' ] ) ) {
+		$reset = $db->prepare( 'UPDATE users SET failed_login = 0 WHERE user = (:user) LIMIT 1;' );
+		$reset->bindParam( ':user', $user, PDO::PARAM_STR );
+		$reset->execute();
+		return $row;
+	}
+
+	$failure = $db->prepare( 'UPDATE users SET failed_login = (failed_login + 1), last_login = CURRENT_TIMESTAMP WHERE user = (:user) LIMIT 1;' );
+	$failure->bindParam( ':user', $user, PDO::PARAM_STR );
+	$failure->execute();
+	return false;
+}
+
 // -- END (Session functions)
 
 function &dvwaPageNewGrab() {
