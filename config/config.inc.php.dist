@@ -59,5 +59,6 @@ define ('SQLITE', 'sqlite');
 $_DVWA['SQLI_DB'] = getenv('SQLI_DB') ?: MYSQL;
 #$_DVWA['SQLI_DB'] = SQLITE;
 #$_DVWA['SQLITE_DB'] = 'sqli.db';
+$_DVWA['SQLITE_DB_PATH'] = getenv('DVWA_SQLITE_DB_PATH') ?: '/var/lib/dvwa/sqli.db';
 
 ?>
